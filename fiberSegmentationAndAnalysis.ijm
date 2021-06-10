@@ -9,18 +9,18 @@
 /************************** parameters **************************/
 minDist = 2; // minimum diameter of the fiber - used to calculate histogram bins
 maxDist = 50; // maximum diameter of the fiber - used to calculate histogram bins
-pixPerMic = 1.2; // equivalent in pixels to 1 micron 
+pixPerMic = 2.04081633; // equivalent in pixels to 1 micron 
 scale = true;
 
 // segmentation of the BF image
 thresholdMethod1 = "Yen"; // automatic threshold
-thredholdManual1 = 140; // manual threshold
-useThresholdManual1 = false; // true or false - whether to use the manual threshold of not
+thredholdManual1 = 103; // manual threshold
+useThresholdManual1 = true; // true or false - whether to use the manual threshold of not
 
 // segmentation of the PL image
 thresholdMethod2 = "Yen"; // can be different from thresholdMethod1
-thredholdManual2 = 50;
-useThresholdManual2 = false; // true or false
+thredholdManual2 = 20;
+useThresholdManual2 = true; // true or false
 
 diagonalFiber = true; // true or false - whether set of fibers are diagonal or not
 nPixelsCorner = 10; // how many pixels should be eliminated from the fiber if endings are in the corners 
@@ -28,11 +28,11 @@ nPixelsSide = 20; // how many pixels should be eliminated from the fiber if endi
 
 // paramenters for the histogram of area and average intensity of the particles segmented in the PL - ending points and bin size
 init_area = 0;
-end_area = 3000;
+end_area = 20000;
 bin_area = 50;
 
-init_intensity = 50;
-end_intensity = 150;
+init_intensity = 20;
+end_intensity = 255;
 bin_intensity = 5;
 /************************** parameters **************************/
 
@@ -107,7 +107,6 @@ for(cont=0; cont<dir.length; cont++) {
 		aux = split(file,".");
 		
 		open(path+file);
-		//run("Bio-Formats Importer", "open=[" + path + file + "] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 		rename("image");
 		if(scale) run("Set Scale...", "distance=" + pixPerMic + " known=1 unit=micron");
 		
@@ -192,7 +191,7 @@ for(cont=0; cont<dir.length; cont++) {
 		    
 			// PL segmentation
 			selectWindow("PLimage");
-			//run("Clear Outside");
+			run("Clear Outside");
 			run("Select None");
 			thresPL = segmentationPL();
 			run("Analyze Particles...", "clear add");
