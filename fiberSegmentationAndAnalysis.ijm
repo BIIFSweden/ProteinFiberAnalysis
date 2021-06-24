@@ -15,12 +15,12 @@ scale = true;
 // segmentation of the BF image
 thresholdMethod1 = "Yen"; // automatic threshold
 thredholdManual1 = 103; // manual threshold
-useThresholdManual1 = true; // true or false - whether to use the manual threshold of not
+useThresholdManual1 = false; // true or false - whether to use the manual threshold of not
 
 // segmentation of the PL image
 thresholdMethod2 = "Yen"; // can be different from thresholdMethod1
 thredholdManual2 = 20;
-useThresholdManual2 = true; // true or false
+useThresholdManual2 = false; // true or false
 
 diagonalFiber = true; // true or false - whether set of fibers are diagonal or not
 nPixelsCorner = 10; // how many pixels should be eliminated from the fiber if endings are in the corners 
@@ -699,10 +699,10 @@ function segmentation() {
 	} else {
 		setAutoThreshold(thresholdMethod1+" dark");
 		setOption("BlackBackground", true);
+		getThreshold(lower, upper);
 		run("Convert to Mask");
 		run("Invert");
 		run("Fill Holes");
-		getThreshold(lower, upper);
 		return lower;
 	}
 }
