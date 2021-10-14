@@ -2,21 +2,21 @@
 
 The pipeline provided in this project performs cell segmentation and quantification using Fiji and it was implemented in ImageJ Macro Language.
 
-#### 1.	Input directory
+### 1.	Input directory
 
 Figure 1 shows an example of an input directory containing the images to be analyzed. Images should be grouped by pairs of BF (brightfield) and POM (polarized microscopy) images.
 
-#### 2.	Software requirements
+### 2.	Software requirements
 
 The software listed below should be installed before running the Fiji script. 
 
 * [Fiji](https://fiji.sc): follow the instructions in the link to download Fiji.
 
-#### 3.	Running the pipeline
+### 3.	Running the pipeline
 
 To run the pipeline, open Fiji and go to Plugins – Macros – Edit... and browse the *fiberSegmentationAndAnalysis.ijm* file to load the script. Then, the interface showed in Fig. 2 will appear. Between lines 10 and 36, different parameters can be modified, as described next:
 
-##### 3.1	Parameters related to size and scale and additional settings
+#### 3.1	Parameters related to size and scale and additional settings
 
 * minDist: the minimum distance between any two pixels of the fiber (minimum diameter)
 * maxDist: the minimum distance between any two pixels of the fiber (maximum diameter)
@@ -26,7 +26,7 @@ To run the pipeline, open Fiji and go to Plugins – Macros – Edit... and brow
 * nPixelsCorner: how many pixels should be eliminated from the fiber if endings are in the corners (check Fig. 3.)
 * nPixelsSide: how many pixels should be eliminated from the fiber if endings are not in the corners (check Fig. 3.)
 
-##### 3.2	Parameters related to thresholding
+#### 3.2	Parameters related to thresholding
 
 * thresholdMethod1: automatic threshold method for the segmentation of the BF image
 * thresholdManual1: user-defined threshold value for the segmentation of the BF image
@@ -35,7 +35,7 @@ To run the pipeline, open Fiji and go to Plugins – Macros – Edit... and brow
 * thresholdManual2: user-defined threshold value for the segmentation of the PL image
 * useThresholdManual2: true or false - whether or not to use the manual threshold for the PL image, if false then the corresponding automatic threshold is used.
 
-##### 3.3	Parameters related to histogram generation
+#### 3.3	Parameters related to histogram generation
 
 * init_area:
 * end_area:
@@ -45,4 +45,4 @@ To run the pipeline, open Fiji and go to Plugins – Macros – Edit... and brow
 * bin_intensity:
 
 
-#### 4.	Ouput files
+### 4.	Ouput files
