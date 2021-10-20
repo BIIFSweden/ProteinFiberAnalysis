@@ -12,19 +12,19 @@ maxDist = 50; // maximum diameter of the fiber - used to calculate histogram bin
 pixPerMic = 2.04081633; // equivalent in pixels to 1 micron 
 scale = true;
 
-// segmentation of the BF image
-thresholdMethod1 = "Yen"; // automatic threshold
-thredholdManual1 = 103; // manual threshold
-useThresholdManual1 = false; // true or false - whether to use the manual threshold of not
-
-// segmentation of the PL image
-thresholdMethod2 = "Yen"; // can be different from thresholdMethod1
-thredholdManual2 = 20;
-useThresholdManual2 = false; // true or false
-
 diagonalFiber = true; // true or false - whether set of fibers are diagonal or not
 nPixelsCorner = 10; // how many pixels should be eliminated from the fiber if endings are in the corners 
 nPixelsSide = 20; // how many pixels should be eliminated from the fiber if endings are not in the corners
+
+// segmentation of the BF image
+thresholdBF_automatic = "Yen"; // automatic threshold
+thresholdBF_manual = 103; // manual threshold
+useThresholdBF_manual = true; // true or false - whether to use the manual threshold of not
+
+// segmentation of the PL image
+thresholdPOM_automatic = "Yen"; // can be different from thresholdBF_automatic
+thresholdPOM_manual = 20;
+useThresholdPOM_manual = true; // true or false
 
 // paramenters for the histogram of area and average intensity of the particles segmented in the PL - ending points and bin size
 init_area = 0;
@@ -33,7 +33,7 @@ bin_area = 50;
 
 init_intensity = 20;
 end_intensity = 255;
-bin_intensity = 5;
+bin_intensity = 1;
 /************************** parameters **************************/
 
 // read input directory
@@ -690,14 +690,14 @@ function histogram(imageName, fileName, n_bins, restore, minValue, maxValue) {
 
 function segmentation() {
 	
-	if(useThresholdManual1) {
-		setThreshold(0, thredholdManual1);	
+	if(useThresholdBF_manual) {
+		setThreshold(0, thresholdBF_manual);	
 		setOption("BlackBackground", true);
 		run("Convert to Mask");
 		run("Fill Holes");
-		return thredholdManual1;
+		return thresholdBF_manual;
 	} else {
-		setAutoThreshold(thresholdMethod1+" dark");
+		setAutoThreshold(thresholdBF_automatic+" dark");
 		setOption("BlackBackground", true);
 		getThreshold(lower, upper);
 		run("Convert to Mask");
@@ -715,10 +715,10 @@ function segmentationPL() {
 	rename("PLmask");
 	run("Restore Selection");		
 
-	if(useThresholdManual2)
-		setThreshold(thredholdManual2, 255);	
+	if(useThresholdPOM_manual)
+		setThreshold(thresholdPOM_manual, 255);	
 	else
-		setAutoThreshold(thresholdMethod2+" dark");
+		setAutoThreshold(thresholdPOM_automatic+" dark");
 		
 	setOption("BlackBackground", true);
 	getThreshold(lower, upper);
