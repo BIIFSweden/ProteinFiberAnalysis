@@ -10,6 +10,8 @@ Different measures are exctracted from the segmented fiber and fiber regions: ar
 
 Figure 1 shows an example of an input directory containing the images to be analyzed. Images should be grouped by pairs of BF (brightfield) and POM (polarized microscopy) images.
 
+![input](img/input_dir.png "Input directory with images to be analyzed")
+
 ### 2.	Software requirements
 
 The software listed below should be installed before running the Fiji script. 
