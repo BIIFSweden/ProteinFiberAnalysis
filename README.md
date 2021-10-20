@@ -10,7 +10,7 @@ Different measures are exctracted from the segmented fiber and fiber regions: ar
 
 The images to be analyzed should be grouped by pairs BF and POM images as illustrated below.
 
-![input](img/input_dir.png | width=100)
+![input](img/input_dir.png "Input directory with images to be analyzed")
 
 ### 2.	Software requirements
 
