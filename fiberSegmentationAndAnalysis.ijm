@@ -10,31 +10,32 @@
 minDist = 2; // minimum diameter of the fiber - used to calculate histogram bins
 maxDist = 50; // maximum diameter of the fiber - used to calculate histogram bins
 pixPerMic = 2.04081633; // equivalent in pixels to 1 micron 
-scale = true;
+scale = true; // whether to export the measures in microns or pixels
 
-diagonalFiber = true; // true or false - whether set of fibers are diagonal or not
-nPixelsCorner = 10; // how many pixels should be eliminated from the fiber if endings are in the corners 
-nPixelsSide = 20; // how many pixels should be eliminated from the fiber if endings are not in the corners
-
-// segmentation of the BF image
+// thresholding settings for the segmentation of the BF image
 thresholdBF_automatic = "Yen"; // automatic threshold
 thresholdBF_manual = 103; // manual threshold
-useThresholdBF_manual = true; // true or false - whether to use the manual threshold of not
+useThresholdBF_manual = false; // whether to use the manual threshold of not
 
-// segmentation of the PL image
-thresholdPOM_automatic = "Yen"; // can be different from thresholdBF_automatic
+// thresholding settings for the segmentation of the POM image
+thresholdPOM_automatic = "Yen"; // the threshold method can be different from thresholdBF_automatic
 thresholdPOM_manual = 20;
-useThresholdPOM_manual = true; // true or false
+useThresholdPOM_manual = false;
 
-// paramenters for the histogram of area and average intensity of the particles segmented in the PL - ending points and bin size
+// paramenters of the histograms of area and intensity values of the segmented particles in the POM image 
 init_area = 0;
 end_area = 20000;
 bin_area = 50;
 
 init_intensity = 20;
 end_intensity = 255;
-bin_intensity = 1;
-/************************** parameters **************************/
+bin_intensity = 5;
+
+// settings for diagonal fibers
+diagonalFiber = true; // whether fibers are diagonal or not
+nPixelsCorner = 10; // number of pixels that should be eliminated from the fiber if endings are in the corners and oriented 45 degrees
+nPixelsSide = 20; // number of pixels that should be eliminated from the fiber if endings are not in the corners and oriented 45 degrees
+/****************************************************************/
 
 // read input directory
 path = getDirectory("Choose a Directory");
@@ -46,32 +47,32 @@ File.makeDirectory(outPath);
 
 // initialize buffers to save measures and histograms
 bufferMeasuresBF = "File;Area;Mean;StdDev;Max;Min;Perim;avgDiam1;stdDiam1;minDiam1;maxDiam1;avgDiam2;stdDiam2;minDiam2;maxDiam2;avgDiam;stdDiam;thresholdValue\n";
-bufferMeasuresPL = "File;Area;Mean;StdDev;Max;Min;Perim;avgDiam1;stdDiam1;minDiam1;maxDiam1;avgDiam2;stdDiam2;minDiam2;maxDiam2;avgDiam;stdDiam;thresholdValue\n";
+bufferMeasuresPOM = "File;Area;Mean;StdDev;Max;Min;Perim;avgDiam1;stdDiam1;minDiam1;maxDiam1;avgDiam2;stdDiam2;minDiam2;maxDiam2;avgDiam;stdDiam;thresholdValue\n";
 bufferHistBF = "bin;";
-bufferHistPL = "bin;";
+bufferHistPOM = "bin;";
 bufferHistDist = "bin;";
 bufferArea = "";
 bufferIntensity = "";
-bufferSummaryPL = "File;Mean Area;Std Area;Min Area;Max Area;Mean intensity;Std Intensity;Min Intensity;Max Intensity\n";
-bufferAreaHistPL = "bin;";
-bufferIntensityHistPL = "bin;";
+bufferSummaryPOM = "File;Mean Area;Std Area;Min Area;Max Area;Mean intensity;Std Intensity;Min Intensity;Max Intensity\n";
+bufferAreaHistPOM = "bin;";
+bufferIntensityHistPOM = "bin;";
 nBins = 256;
 increment = 256/nBins;
 
-// initialize histogram files for BF and PL image
+// initialize histogram buffer for BF and POM image
 startBin = 0;
 for(binCount=0; binCount<nBins; binCount++) {
 	if(binCount == (nBins-1)) {
 		bufferHistBF = bufferHistBF + startBin + "\n";
-		bufferHistPL = bufferHistPL + startBin + "\n";
+		bufferHistPOM = bufferHistPOM + startBin + "\n";
 	} else {
 		bufferHistBF = bufferHistBF + startBin + ";";
-		bufferHistPL = bufferHistPL + startBin + ";";
+		bufferHistPOM = bufferHistPOM + startBin + ";";
 	}
 	startBin = startBin + increment;
 }
 
-// initialize histogram file for diameter measure
+// initialize histogram buffer for diameter measure
 nBinsDist = maxDist - minDist + 1;
 for(binCount=minDist; binCount<=maxDist; binCount++) {
 	binVal = binCount;
@@ -84,25 +85,25 @@ for(binCount=minDist; binCount<=maxDist; binCount++) {
 	}
 }
 
-// initialize histogram file for area of segmented objects inside PL fiber
+// initialize histogram buffer for area of segmented objects located inside POM fiber
 for(j=init_area; j<end_area; j=j+bin_area) {
 	val = j;
 	if(scale) val = val * 1/pixPerMic * 1/pixPerMic;
-	if((j+bin_area) >= end_area) bufferAreaHistPL = bufferAreaHistPL + val + "\n";
-	else bufferAreaHistPL = bufferAreaHistPL + val + ";";
+	if((j+bin_area) >= end_area) bufferAreaHistPOM = bufferAreaHistPOM + val + "\n";
+	else bufferAreaHistPOM = bufferAreaHistPOM + val + ";";
 }
 
-// initialize histogram file for intensity of segmented objects inside PL fiber
+// initialize histogram buffer for intensity of segmented objects inside POM fiber
 for(j=init_intensity; j<end_intensity; j=j+bin_intensity) {
-	if((j+bin_intensity) >= end_intensity) bufferIntensityHistPL = bufferIntensityHistPL + j + "\n";
-	else bufferIntensityHistPL = bufferIntensityHistPL + j + ";";
+	if((j+bin_intensity) >= end_intensity) bufferIntensityHistPOM = bufferIntensityHistPOM + j + "\n";
+	else bufferIntensityHistPOM = bufferIntensityHistPOM + j + ";";
 }
 
 // iterate over all images of the input directory
 for(cont=0; cont<dir.length; cont++) {
 	file = dir[cont];
 	
-	if(matches(file, ".*BF.*") && !endsWith(file, "segmentation/")) { // read BF images and search for the corresponding PL image, with the exact same name
+	if(matches(file, ".*BF.*") && !endsWith(file, "segmentation/")) { // read BF images and search for the corresponding POM image, with the exact same name
 		print(path+file);
 		aux = split(file,".");
 		
@@ -114,15 +115,15 @@ for(cont=0; cont<dir.length; cont++) {
 		rename("RGB");
 		run("Split Channels");
 
-		// open corresponding PL image
-		PLimage = replace(file, "BF", "PL");
-		print(path+PLimage);
-		open(path+PLimage);
-		rename("PLimage");
+		// open corresponding POM image
+		POMimage = replace(file, "BF", "PL");
+		print(path+POMimage);
+		open(path+POMimage);
+		rename("POMimage");
 		if(scale) run("Set Scale...", "distance=" + pixPerMic + " known=1 unit=micron");
 
-		run("Duplicate...", "PL-RGB");
-		rename("PL-RGB");
+		run("Duplicate...", "POM-RGB");
+		rename("POM-RGB");
 		run("Split Channels");
 
 		selectWindow("image");
@@ -130,7 +131,7 @@ for(cont=0; cont<dir.length; cont++) {
 		run("Duplicate...", "mask");
 		rename("mask");
 
-		selectWindow("PLimage");
+		selectWindow("POMimage");
 		run("8-bit");
 
 		selectWindow("mask");
@@ -172,7 +173,6 @@ for(cont=0; cont<dir.length; cont++) {
 
 			selectWindow("Fiber Mask");
 			run("Create Selection");
-			//run("Interpolate", "interval=1");
 	
 			measures = measure("image", file); // measures for the 8-bit image
 			bufferMeasuresBF = bufferMeasuresBF + measures;
@@ -181,74 +181,74 @@ for(cont=0; cont<dir.length; cont++) {
 			selectWindow("Results"); 
 		    run("Close");
 		    
-			measures = measure("PLimage", PLimage); // measures for the 8-bit PL image
-			bufferMeasuresPL = bufferMeasuresPL + measures;
-			saveOverlay("PLimage", outPath, PLimage);
-			bufferHistPL = bufferHistPL + histogram("PLimage", PLimage, nBins, true, 0, 256);
+			measures = measure("POMimage", POMimage); // measures for the 8-bit POM image
+			bufferMeasuresPOM = bufferMeasuresPOM + measures;
+			saveOverlay("POMimage", outPath, POMimage);
+			bufferHistPOM = bufferHistPOM + histogram("POMimage", POMimage, nBins, true, 0, 256);
 	
 			selectWindow("Results"); 
 		    run("Close");
 		    
-			// PL segmentation
-			selectWindow("PLimage");
+			// POM segmentation
+			selectWindow("POMimage");
 			run("Clear Outside");
 			run("Select None");
-			thresPL = segmentationPL();
+			thresPOM = segmentationPOM();
 			run("Analyze Particles...", "clear add");
-			selectWindow("PLimage");
+			selectWindow("POMimage");
 			roiManager("Measure");
 	
 			numROIs = roiManager("count");
 			
-			bufferArea = bufferArea + PLimage + ";";
-			bufferIntensity = bufferIntensity + PLimage + ";";
-			bufferAreaHistPL = bufferAreaHistPL + PLimage + ";";
-			bufferIntensityHistPL = bufferIntensityHistPL + PLimage + ";";
+			bufferArea = bufferArea + POMimage + ";";
+			bufferIntensity = bufferIntensity + POMimage + ";";
+			bufferAreaHistPOM = bufferAreaHistPOM + POMimage + ";";
+			bufferIntensityHistPOM = bufferIntensityHistPOM + POMimage + ";";
 			
-			areaPL = newArray(numROIs);
-			intensityPL = newArray(numROIs);
+			areaPOM = newArray(numROIs);
+			intensityPOM = newArray(numROIs);
 			
 			for(row=0; row<(numROIs-1); row++) {
 				bufferArea = bufferArea + getResult("Area", row) + ";";
 				bufferIntensity = bufferIntensity + getResult("Mean", row) + ";";
 
-				areaPL[row] = getResult("Area", row);
-				intensityPL[row] = getResult("Mean", row);
+				areaPOM[row] = getResult("Area", row);
+				intensityPOM[row] = getResult("Mean", row);
 			}
 			bufferArea = bufferArea + getResult("Area", row) + "\n";
 			bufferIntensity = bufferIntensity + getResult("Mean", row) + "\n";
-			areaPL[row] = getResult("Area", row);
-			intensityPL[row] = getResult("Mean", row);
+			areaPOM[row] = getResult("Area", row);
+			intensityPOM[row] = getResult("Mean", row);
 			
-			countsArea = getHistogramPLObjects(areaPL,init_area,end_area,bin_area);
-			countsIntensity = getHistogramPLObjects(intensityPL,init_intensity,end_intensity,bin_intensity);
+			countsArea = getHistogramPOMObjects(areaPOM,init_area,end_area,bin_area);
+			countsIntensity = getHistogramPOMObjects(intensityPOM,init_intensity,end_intensity,bin_intensity);
 
 			for(j=0; j<countsArea.length; j++) {
-				if(j == (countsArea.length-1)) bufferAreaHistPL = bufferAreaHistPL + countsArea[j] + "\n";
-				else bufferAreaHistPL = bufferAreaHistPL + countsArea[j] + ";";
+				if(j == (countsArea.length-1)) bufferAreaHistPOM = bufferAreaHistPOM + countsArea[j] + "\n";
+				else bufferAreaHistPOM = bufferAreaHistPOM + countsArea[j] + ";";
 			}
 
 			for(j=0; j<countsIntensity.length; j++) {
-				if(j == (countsIntensity.length-1)) bufferIntensityHistPL = bufferIntensityHistPL + countsIntensity[j] + "\n";
-				else bufferIntensityHistPL = bufferIntensityHistPL + countsIntensity[j] + ";";
+				if(j == (countsIntensity.length-1)) bufferIntensityHistPOM = bufferIntensityHistPOM + countsIntensity[j] + "\n";
+				else bufferIntensityHistPOM = bufferIntensityHistPOM + countsIntensity[j] + ";";
 			}
 		
-			selectWindow("PLimage");
+			selectWindow("POMimage");
 			run("From ROI Manager");
 			roiManager("Show All without labels");
-			saveOverlay("PLimage", outPath, "segmented_"+PLimage);
-			roiManager("Save", outPath+PLimage+"RoiSet.zip");
-			close("PLmask");
+			saveOverlay("POMimage", outPath, "segmented_"+POMimage);
+			roiManager("Save", outPath+POMimage+"RoiSet.zip");
+			close("POMmask");
 
 			if(numROIs > 1) {
 				run("Summarize");
 				avgArea = getResult("Area", numROIs);
 				avgIntensity = getResult("Mean", numROIs);
-				bufferSummaryPL = bufferSummaryPL + PLimage + ";" + avgArea + ";" + getResult("Area", (numROIs+1)) + ";" + getResult("Area", (numROIs+2)) + ";" + getResult("Area", (numROIs+3)) + ";" + avgIntensity + ";" + getResult("Mean", (numROIs+1)) + ";" + getResult("Mean", (numROIs+2)) + ";" + getResult("Mean", (numROIs+3)) + "\n";
+				bufferSummaryPOM = bufferSummaryPOM + POMimage + ";" + avgArea + ";" + getResult("Area", (numROIs+1)) + ";" + getResult("Area", (numROIs+2)) + ";" + getResult("Area", (numROIs+3)) + ";" + avgIntensity + ";" + getResult("Mean", (numROIs+1)) + ";" + getResult("Mean", (numROIs+2)) + ";" + getResult("Mean", (numROIs+3)) + "\n";
 			} else {
 				avgArea = getResult("Area", 0);
 				avgIntensity = getResult("Mean", 0);
-				bufferSummaryPL = bufferSummaryPL + PLimage + ";" + avgArea + ";0;" + avgArea + ";" + avgArea + ";" + avgIntensity + ";0;" + avgIntensity + ";" + avgIntensity + "\n";
+				bufferSummaryPOM = bufferSummaryPOM + POMimage + ";" + avgArea + ";0;" + avgArea + ";" + avgArea + ";" + avgIntensity + ";0;" + avgIntensity + ";" + avgIntensity + "\n";
 			}
 
 			selectWindow("ROI Manager"); 
@@ -269,9 +269,9 @@ for(cont=0; cont<dir.length; cont++) {
 			
 			// calculate average diameter (from both directions), std and threshold method to the buffer
 			bufferMeasuresBF = bufferMeasuresBF + ";" + diameter + ";" + avgDiam + ";" + avgStd + ";" + thres + "\n";
-			bufferMeasuresPL = bufferMeasuresPL + ";" + diameter + ";" + avgDiam + ";" + avgStd + ";" + thresPL + "\n";
+			bufferMeasuresPOM = bufferMeasuresPOM + ";" + diameter + ";" + avgDiam + ";" + avgStd + ";" + thresPOM + "\n";
 	
-			// create the segmentation mask again to run "measures" on the RGB channels, individually
+			// create the segmentation mask again to run "measures" on the RGB individual channels
 		    selectWindow("image");
 			run("Create Mask");
 			run("Analyze Particles...", "size=0-Infinity clear add");
@@ -280,7 +280,7 @@ for(cont=0; cont<dir.length; cont++) {
 	
 		    ids = newArray("RGB (red)", "RGB (green)", "RGB (blue)");
 			names = newArray(file+"_red", file+"_green", file+"_blue");
-			namesPL = newArray(PLimage+"_red", PLimage+"_green", PLimage+"_blue");
+			namesPOM = newArray(POMimage+"_red", POMimage+"_green", POMimage+"_blue");
 	
 			for(i=0; i<ids.length; i++) {
 				measures = measure(ids[i], names[i]);
@@ -288,11 +288,11 @@ for(cont=0; cont<dir.length; cont++) {
 				selectWindow("Results"); 
 		    	run("Close");
 				
-				measures = measure("PL-"+ids[i], namesPL[i]);
-				bufferMeasuresPL = bufferMeasuresPL + measures + ";" + diameter + ";" + avgDiam + ";" + avgStd + ";" + thresPL + "\n";
+				measures = measure("POM-"+ids[i], namesPOM[i]);
+				bufferMeasuresPOM = bufferMeasuresPOM + measures + ";" + diameter + ";" + avgDiam + ";" + avgStd + ";" + thresPOM + "\n";
 				
 				bufferHistBF = bufferHistBF + histogram(ids[i], names[i], nBins, true, 0, 256);
-				bufferHistPL = bufferHistPL + histogram("PL-"+ids[i], namesPL[i], nBins, true, 0, 256);
+				bufferHistPOM = bufferHistPOM + histogram("POM-"+ids[i], namesPOM[i], nBins, true, 0, 256);
 	
 				selectWindow("Results");
 	    		run("Close");
@@ -315,35 +315,35 @@ for(cont=0; cont<dir.length; cont++) {
 // create files and save buffers
 summaryPathBF = outPath+"summaryBF.csv";
 histPathBF = outPath+"histBF.csv";
-summaryPathPL = outPath+"summaryPL.csv";
-histPathPL = outPath+"histPL.csv";
+summaryPathPOM = outPath+"summaryPOM.csv";
+histPathPOM = outPath+"histPOM.csv";
 histPathDist = outPath+"histDiameter.csv";
-summaryAreaFiberPL_perObj = outPath+"areaPerFiberPL_perObj.csv";
-summaryIntensityFiberPL_perObj = outPath+"intensityPerFiberPL_perObj.csv";
-summaryAreaFiberPL = outPath+"areaIntensityPerFiberPL.csv";
-histAreaFiberPL = outPath+"histogramAreaPerFiberPL.csv";
-histIntensityFiberPL = outPath+"histogramIntensityPerFiberPL.csv";
+summaryAreaFiberPOM_perObj = outPath+"areaPerFiberPOM_perObj.csv";
+summaryIntensityFiberPOM_perObj = outPath+"intensityPerFiberPOM_perObj.csv";
+summaryAreaFiberPOM = outPath+"areaIntensityPerFiberPOM.csv";
+histAreaFiberPOM = outPath+"histogramAreaPerFiberPOM.csv";
+histIntensityFiberPOM = outPath+"histogramIntensityPerFiberPOM.csv";
 
 if(File.exists(summaryPathBF))
 	File.delete(summaryPathBF);
 if(File.exists(histPathBF))
 	File.delete(histPathBF);
-if(File.exists(summaryPathPL))
-	File.delete(summaryPathPL);
-if(File.exists(histPathPL))
-	File.delete(histPathPL);
+if(File.exists(summaryPathPOM))
+	File.delete(summaryPathPOM);
+if(File.exists(histPathPOM))
+	File.delete(histPathPOM);
 if(File.exists(histPathDist))
 	File.delete(histPathDist);
-if(File.exists(summaryAreaFiberPL_perObj))
-	File.delete(summaryAreaFiberPL_perObj);
-if(File.exists(summaryIntensityFiberPL_perObj))
-	File.delete(summaryIntensityFiberPL_perObj);
-if(File.exists(summaryAreaFiberPL))
-	File.delete(summaryAreaFiberPL);
-if(File.exists(histAreaFiberPL))
-	File.delete(histAreaFiberPL);
-if(File.exists(histIntensityFiberPL))
-	File.delete(histIntensityFiberPL);
+if(File.exists(summaryAreaFiberPOM_perObj))
+	File.delete(summaryAreaFiberPOM_perObj);
+if(File.exists(summaryIntensityFiberPOM_perObj))
+	File.delete(summaryIntensityFiberPOM_perObj);
+if(File.exists(summaryAreaFiberPOM))
+	File.delete(summaryAreaFiberPOM);
+if(File.exists(histAreaFiberPOM))
+	File.delete(histAreaFiberPOM);
+if(File.exists(histIntensityFiberPOM))
+	File.delete(histIntensityFiberPOM);
 
 summaryFileBF = File.open(summaryPathBF);
 print(summaryFileBF, bufferMeasuresBF);
@@ -353,37 +353,37 @@ histFileBF = File.open(histPathBF);
 print(histFileBF, bufferHistBF);
 File.close(histFileBF);
 
-summaryFilePL = File.open(summaryPathPL);
-print(summaryFilePL, bufferMeasuresPL);
-File.close(summaryFilePL);
+summaryFilePOM = File.open(summaryPathPOM);
+print(summaryFilePOM, bufferMeasuresPOM);
+File.close(summaryFilePOM);
 
-histFilePL = File.open(histPathPL);
-print(histFilePL, bufferHistPL);
-File.close(histFilePL);
+histFilePOM = File.open(histPathPOM);
+print(histFilePOM, bufferHistPOM);
+File.close(histFilePOM);
 
 histFileDist = File.open(histPathDist);
 print(histFileDist, bufferHistDist);
 File.close(histFileDist);
 
-areaFiberFilePL_perObj = File.open(summaryAreaFiberPL_perObj);
-print(areaFiberFilePL_perObj, bufferArea);
-File.close(areaFiberFilePL_perObj);
+areaFiberFilePOM_perObj = File.open(summaryAreaFiberPOM_perObj);
+print(areaFiberFilePOM_perObj, bufferArea);
+File.close(areaFiberFilePOM_perObj);
 
-intesityFiberFilePL_perObj = File.open(summaryIntensityFiberPL_perObj);
-print(intesityFiberFilePL_perObj, bufferIntensity);
-File.close(intesityFiberFilePL_perObj);
+intesityFiberFilePOM_perObj = File.open(summaryIntensityFiberPOM_perObj);
+print(intesityFiberFilePOM_perObj, bufferIntensity);
+File.close(intesityFiberFilePOM_perObj);
 
-areaFiberFilePL = File.open(summaryAreaFiberPL);
-print(areaFiberFilePL, bufferSummaryPL);
-File.close(areaFiberFilePL);
+areaFiberFilePOM = File.open(summaryAreaFiberPOM);
+print(areaFiberFilePOM, bufferSummaryPOM);
+File.close(areaFiberFilePOM);
 
-histAreaFiberPLFile = File.open(histAreaFiberPL);
-print(histAreaFiberPLFile, bufferAreaHistPL);
-File.close(histAreaFiberPLFile);
+histAreaFiberPOMFile = File.open(histAreaFiberPOM);
+print(histAreaFiberPOMFile, bufferAreaHistPOM);
+File.close(histAreaFiberPOMFile);
 
-histIntensityFiberPLFile = File.open(histIntensityFiberPL);
-print(histIntensityFiberPLFile, bufferIntensityHistPL);
-File.close(histIntensityFiberPLFile);
+histIntensityFiberPOMFile = File.open(histIntensityFiberPOM);
+print(histIntensityFiberPOMFile, bufferIntensityHistPOM);
+File.close(histIntensityFiberPOMFile);
 
 if(File.exists(path+"contour1.txt"))
 	File.delete(path+"contour1.txt");
@@ -395,7 +395,7 @@ print("finished");
 
 /************************** functions **************************/
 
-function getHistogramPLObjects(values, init, end, bin) {
+function getHistogramPOMObjects(values, init, end, bin) {
 	sizeHist = Math.ceil((end-init)/bin);
 	counts = newArray(sizeHist);
 
@@ -673,7 +673,6 @@ function measureDiameter(img1, img2) { // diamenter from img1 to img2
 function histogram(imageName, fileName, n_bins, restore, minValue, maxValue) {
 	selectWindow(imageName);
 	if(restore) run("Restore Selection");
-	//run("Clear Outside");
 
 	if(maxValue == 256) getHistogram(values, counts, n_bins);
 	else getHistogram(values, counts, n_bins, minValue, maxValue);
@@ -707,12 +706,12 @@ function segmentation() {
 	}
 }
 
-function segmentationPL() {
+function segmentationPOM() {
 	// save the area per fiber components
-	selectWindow("PLimage");
+	selectWindow("POMimage");
 
-	run("Duplicate...", "PLmask");
-	rename("PLmask");
+	run("Duplicate...", "POMmask");
+	rename("POMmask");
 	run("Restore Selection");		
 
 	if(useThresholdPOM_manual)
