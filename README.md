@@ -1,6 +1,6 @@
 # An image-based analysis of recombinant silk fiber structures
 
-The pipeline provided in this project performs segmentation and quantification of recombinant silk fibers using Fiji and it was implemented in ImageJ Macro Language. The input of the pipeline is a pair of images depicting a sample fiber from two microscopy techniques, brightfield (BF) and crossed polarizers (POM). The brightfield counterpart will be used for segmentation using Yen's threshold method, which yields a binary mask separating the fiber from the background. Next, a second segmentation is applied to the POM image restricted only to the fiber region. This is performed in order to characterize the different regions in the fiber with varying intensity patterns. The whole process is illustrated below
+The pipeline provided in this project performs segmentation and quantification of recombinant silk fibers using Fiji and it was implemented in ImageJ Macro Language. The input of the pipeline is a pair of images depicting a sample fiber from two microscopy techniques, brightfield (BF) and crossed polarizers (POM). The brightfield counterpart will be used for segmentation using Yen's threshold method, which yields a binary mask separating the fiber from the background. Next, a second segmentation is applied to the POM image restricted only to the fiber region. This is performed in order to characterize the different regions in the fiber with varying intensity patterns. The whole process is illustrated below.
 
 ![Pipeline](img/scheme_image.png "Title Text")
 
