@@ -26,7 +26,6 @@ useThresholdPOM_manual = false;
 init_area = 0;
 end_area = 20000;
 bin_area = 50;
-
 init_intensity = 20;
 end_intensity = 255;
 bin_intensity = 5;
