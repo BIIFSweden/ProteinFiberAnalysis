@@ -8,9 +8,9 @@ Different measures are exctracted from the segmented fiber and fiber regions: ar
 
 ### 1.	Input directory
 
-The images to be analyzed should be grouped by pairs BF and POM images as illustrated below.
+The images to be analyzed should be grouped by pairs BF and POM (PL) images as illustrated below.
 
-<a href="url"><img src="img/input_dir.png" align="left" height="100" width="300" ></a>
+<a href="url"><img src="img/input_dir.png" height="auto" width="300" ></a>
 
 ### 2.	Software requirements
 
@@ -20,7 +20,9 @@ The software listed below should be installed before running the Fiji script.
 
 ### 3.	Running the pipeline
 
-To run the pipeline, open Fiji and go to Plugins – Macros – Edit... and browse the *fiberSegmentationAndAnalysis.ijm* file to load the script. Then, the interface showed in Fig. 2 will appear. Between lines 10 and 36, different parameters can be modified, as described next:
+To run the pipeline, open Fiji and go to Plugins – Macros – Edit... and browse the *fiberSegmentationAndAnalysis.ijm* file to load the script. Then, the interface showed in figure below will appear. Between lines 10 and 36, different parameters can be modified, as described next:
+
+<a href="url"><img src="img/fiji_macro.png" height="auto" width="600" ></a>
 
 #### 3.1	Parameters related to size and scale and additional settings
 
