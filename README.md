@@ -4,7 +4,7 @@ The pipeline provided in this project performs segmentation and quantification o
 
 ![Pipeline](img/scheme_image.png "Title Text")
 
-Different measures are exctracted from the segmented fiber and fiber regions: area, average intensity, average diameter and the corresponding standard deviation, minimum diameter, maximum diameter and the threshold value used. The fiber diameter was estimated using the Euclidean distance transform (EDT) computed from the upper boundary of the fiber towards the lower boundary and vice-versa. Both values were averaged in order to obtain the final diameter. 
+Different measures are extracted from the segmented fiber and fiber regions: area, average intensity, average diameter and the corresponding standard deviation, minimum diameter, maximum diameter and the threshold value used. The fiber diameter was estimated using the Euclidean distance transform (EDT) computed from the upper boundary of the fiber towards the lower boundary and vice-versa. Both values were averaged in order to obtain the final diameter. 
 
 ### 1.	Input directory
 
@@ -26,11 +26,11 @@ To run the pipeline, open Fiji and go to Plugins – Macros – Edit... and brow
 
 #### 3.1	Parameters related to size, scale and additional settings
 
-The Eudlidean distance transform (EDT) is employed in order to calculate the fiber diameter. The parameters related to distance (*minDist* and *maxDist*) are used to generate a histogram of the resulting EDT, which will then be used to evalute the distribution of the distance values along the fiber. Scale parameter can also be used calibrate pixel values (*pixPerMic* and *scale*). 
+The Euclidean distance transform (EDT) is employed in order to calculate the fiber diameter. The parameters related to distance (*minDist* and *maxDist*) are used to generate a histogram of the resulting EDT, which will then be used to evaluate the distribution of the distance values along the fiber. Scale parameter can also be used calibrate pixel values (*pixPerMic* and *scale*). 
 
 #### 3.2	Parameters related to thresholding
 
-The thresholding-related parameters can be handled separately for both BF and POM images. For the automatic mode, one of the embbeded Fiji thresholding methods should be selected. We have adopted Yen's tresholding method. In addition, manual values can also be selected. Whether to use automatic or manual thresholding settings can also controlled via a third parameter (*useThresholdBF_manual* or *useThresholdPOM_manual*).
+The thresholding-related parameters can be handled separately for both BF and POM images. For the automatic mode, one of the embedded  Fiji thresholding methods should be selected. We have adopted Yen's thresholding method. In addition, manual values can also be selected. Whether to use automatic or manual thresholding settings can also controlled via a third parameter (*useThresholdBF_manual* or *useThresholdPOM_manual*).
 
 #### 3.3	Parameters related to histogram generation
 
@@ -40,6 +40,21 @@ The pipeline outputs the intensity and area histogram of the segmented particles
 
 These parameters control how many pixels should be eliminated from the fiber if its endings points are in the corners and oriented 45 degrees. They are used to treat distortions at the endings (figure below) of the fibers and avoid possible issues with the EDT computation.
 
-<a href="url"><img src="img/diagonal_fibers.png" height="auto" width="500" ></a>
+<a href="url"><img src="img/diagonal_fibers.png" height="auto" width="700" ></a>
 
-### 4.	Ouput files
+### 4.	Output files
+
+After setting all the parameters, the pipeline can be executed by pressing the *Run* button. The input directory should be selected and then all the fiber pairs will be processed. After execution, a folder named *segmentation* will be created containing the following output files
+
+* Image files: For each BF/POM pair in the input directory, three image files are created: segmentation result of the BF image; segmentation overlay of the POM image and the segmented regions inside the POM fiber.
+* summaryBF.csv: A summary file containing the measurements of the BF image
+* summaryPOM.csv: A summary file containing the measurements of the POM image (diameter is measured based on BF segmentation)
+* histDiameter.csv: A file containing the histograms of the diameters of the fibers
+* histBF.csv: A file containing the histograms of the pixel intensities of the segmented fiber for each BF image 
+* histPOM.csv: A file containing the histograms of the pixel intensities of the segmented fiber for each POM image
+* areaIntensityPerFiberPOM.csv: A file containing the average area and average intensity of all the segmented objects inside the fiber region
+* areaPerFiberPOM_perObj.csv: A file containing the area values of each segmented object inside the fiber region
+* intensityPerFiberPOM_perObj.csv: A file containing the average intensity of each segmented object inside the fiber region
+* histogramAreaPerFiberPOM.csv: area histogram of the segmented object inside the fiber region 
+* histogramIntensityPerFiberPOM.csv: intensity histogram of the segmented object inside the fiber region 
+
